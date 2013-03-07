@@ -118,3 +118,4 @@
 ^dist($|/)
 ^setup.log$
 ^setup.data$
+\.tar\.gz$
