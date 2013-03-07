@@ -1,0 +1,11 @@
+# OASIS_START
+# DO NOT EDIT (digest: f329716f68f645b2cf301e9322f6ebc3)
+version = "0.1.0"
+description = "Password manager for automatic installation."
+archive(byte) = "sekred.cma"
+archive(byte, plugin) = "sekred.cma"
+archive(native) = "sekred.cmxa"
+archive(native, plugin) = "sekred.cmxs"
+exists_if = "sekred.cma"
+# OASIS_STOP
+

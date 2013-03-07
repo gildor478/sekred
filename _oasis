@@ -1,0 +1,31 @@
+OASISFormat: 0.3
+Name:        sekred
+Version:     0.1.0
+Synopsis:    Password manager for automatic installation.
+Authors:     Sylvain Le Gall
+License:     LGPL-2.1 with OCaml linking exception
+Plugins:     DevFiles (0.3), META (0.3), StdFiles (0.3)
+FilesAB:     src/SekredConf.ml.ab
+
+Description:
+ This program helps to manage passwords set automatically and stored in a
+ semi-secure way.
+ .
+ It is not a fully secured storage for password because only the Unix ACL
+ system protects the secret. Typical usage is to store password for MySQL
+ databases.
+ .
+ The system is designed to be a companion tool for puppet.
+
+Library sekred
+  Path:       src
+  BuildTools: ocamlbuild
+  Modules:    Sekred, SekredConf
+  BuildDepends: unix
+
+Executable sekred
+  Path:       src
+  BuildTools: ocamlbuild
+  MainIs:     main.ml
+  BuildDepends: sekred
+
