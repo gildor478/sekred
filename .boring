@@ -119,3 +119,6 @@
 ^setup.log$
 ^setup.data$
 \.tar\.gz$
+\.tar\.gz\.asc$
+^debian-tmp.org(/|$)
+^debian-tmp(/|$)
