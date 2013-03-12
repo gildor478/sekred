@@ -36,3 +36,17 @@ setup.data:
 .PHONY: build doc test all install uninstall reinstall clean distclean configure
 
 # OASIS_STOP
+
+OASIS_DIST_OPTS=-no-tag
+
+deploy:
+	oasis-dist.ml $(OASIS_DIST_OPTS)
+	admin-gallu-dpkg-source \
+		--distribution squeeze \
+		--group sekred,/var/lib/sekred \
+		--dh-dirs sekred,var/lib/sekred/domains \
+		--dpkg-statoverride /usr/bin/sekred,root,sekred,2755 \
+		--dpkg-statoverride /var/lib/sekred/domains,root,sekred,1730
+	# TODO: build package.
+
+
