@@ -3,7 +3,7 @@ open Unix
 
 type t = 
     {
-      vardir: string;
+      domainsdir: string;
       uid: int;
     }
 
@@ -21,7 +21,7 @@ let gid_of_group group =
           group)
 
 let to_filename t domain =
-  Filename.concat t.vardir domain
+  Filename.concat t.domainsdir domain
 
 let has_access t domain =
   try
@@ -156,11 +156,11 @@ let get t domain =
     end
 
 let list t =
-  if not (Sys.file_exists t.vardir) || not (Sys.is_directory t.vardir) then
+  if not (Sys.file_exists t.domainsdir) || not (Sys.is_directory t.domainsdir) then
     failwith 
       (Printf.sprintf
-         "Sekred vardir '%s' doesn't exist"
-         t.vardir)
+         "Sekred domains dir '%s' doesn't exist"
+         t.domainsdir)
   else
     let lst =
       Array.fold_left
@@ -170,7 +170,7 @@ let list t =
            else
              lst)
         []
-        (Sys.readdir t.vardir)
+        (Sys.readdir t.domainsdir)
     in
       List.sort String.compare lst
 
@@ -184,45 +184,56 @@ let delete t domain =
           domain)
 
 let init ?(vardir=SekredConf.vardir) () =
-  if not (Sys.file_exists vardir) then
-    Unix.mkdir vardir 0o1730; (* Special mode, like crontabs directory. *)
-  Unix.chmod vardir 0o1730
+  let () =
+    if not (Sys.file_exists vardir) then
+      Unix.mkdir vardir 0o755;
+  in
+  let domainsdir = 
+    Filename.concat vardir "domains"
+  in
+  let () =
+    if not (Sys.file_exists domainsdir) then
+      Unix.mkdir domainsdir 0o1755;
+    (* Special mode, like crontabs directory. *)
+    Unix.chmod domainsdir 0o1730
+  in
+    ()
 
 let check t =
   let spf fmt = Printf.sprintf fmt in
-    if not (Sys.file_exists t.vardir) || not (Sys.is_directory t.vardir) then
+    if not (Sys.file_exists t.domainsdir) || not (Sys.is_directory t.domainsdir) then
       begin
-        [spf "Sekred vardir '%s' doesn't exist." t.vardir]
+        [spf "Sekred domains dir '%s' doesn't exist." t.domainsdir]
       end
     else
       begin
         let lst = [] in
-        let st = Unix.stat t.vardir in
+        let st = Unix.stat t.domainsdir in
         let lst =
           if st.st_perm != 0o1730 then
             (spf "'%s' permission is %o but should be %o."
-               t.vardir st.st_perm 0o1730) :: lst
+               t.domainsdir st.st_perm 0o1730) :: lst
           else
             lst
         in
         let lst =
           if st.st_uid != 0 then
             (spf "'%s' owner is '%d' but should be 'root'."
-               t.vardir st.st_uid) :: lst
+               t.domainsdir st.st_uid) :: lst
           else
             lst
         in
         let lst = 
           if st.st_gid != 0 then
             (spf "'%s' group is '%d' but should be 'root'."
-               t.vardir st.st_gid) :: lst
+               t.domainsdir st.st_gid) :: lst
           else
             lst
         in
         let rec check_files lst =
           function
             | fn :: tl ->
-                let full_fn = Filename.concat t.vardir fn in
+                let full_fn = Filename.concat t.domainsdir fn in
                 let st = Unix.stat full_fn in
                 let lst = 
                   if st.st_kind != Unix.S_REG then
@@ -237,16 +248,17 @@ let check t =
             | [] ->
                 lst
         in
-          check_files lst (Array.to_list (Sys.readdir t.vardir))
+          check_files lst (Array.to_list (Sys.readdir t.domainsdir))
       end
 
 let create ?(vardir=SekredConf.vardir) ?(uid=Unix.getuid ()) () =
-  if not (Sys.file_exists vardir) || not (Sys.is_directory vardir) then
-    failwith 
-      (Printf.sprintf 
-         "Sekred vardir '%s' doesn't exist."
-         vardir);
-  {
-    vardir = vardir;
-    uid    = uid;
-  }
+  let domainsdir = Filename.concat vardir "domains" in
+    if not (Sys.file_exists domainsdir) || not (Sys.is_directory domainsdir) then
+      failwith 
+        (Printf.sprintf 
+           "Sekred domains dir '%s' doesn't exist."
+           domainsdir);
+    {
+      domainsdir = domainsdir;
+      uid = uid;
+    }
