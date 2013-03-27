@@ -1,4 +1,4 @@
 
 let version = "$(pkg_version)"
 
-let vardir = Filename.concat "$(localstatedir)" "$(pkg_name)"
+let vardir = Filename.concat (Filename.concat "$(localstatedir)" "lib") "$(pkg_name)"

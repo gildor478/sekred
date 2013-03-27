@@ -46,6 +46,7 @@ OASIS2DEBIAN_ARGS="--distribution squeeze \
 		--dpkg-statoverride /var/lib/sekred/domains,root,sekred,1730"
 
 deploy:
-	../admin-gallu/src/admin-gallu-deploy --verbose \
+	admin-gallu-deploy --verbose \
 		--debian_pkg --debuild --debian_upload \
-		--oasis2debian_args '$(OASIS2DEBIAN_ARGS)'
+		--oasis2debian_args '$(OASIS2DEBIAN_ARGS)' \
+		--forge_upload	--forge_group sekred --forge_user gildor-admin
