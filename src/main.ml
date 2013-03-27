@@ -5,14 +5,11 @@ type action_t =
   | Check 
   | Init
   | List 
+  | Help
 
 let () = 
   let faction = 
     ref (fun () -> List)
-  in
-  let domain =
-    ref (fun () -> 
-           failwith "You need to set --domain=... for this action.")
   in
   let password = 
     ref (fun () ->
@@ -27,12 +24,6 @@ let () =
       Arg.String
         (fun fn -> vardir := Some fn),
       "fn Set sekred vardir.";
-
-      "--domain",
-      Arg.String 
-        (fun str ->
-           domain := fun () -> str),
-      "str Domain to consider for the action.";
 
       "--password",
       Arg.String
@@ -49,49 +40,45 @@ let () =
              password := fun () -> str),
       "fn Read password from file.";
 
-      "--get",
-      Arg.Unit 
-        (fun () ->
-           faction := (fun () -> Get (!domain ()))),
-      " Get a password for a given domain.";
-
-      "--delete",
-      Arg.Unit 
-        (fun () ->
-           faction := (fun () -> Delete (!domain ()))),
-      " Delete a domain.";
-
-      "--set",
-      Arg.Unit
-        (fun () ->
-           faction := (fun () -> Set (!domain (), !password ()))),
-      " Set a password for a domain.";
-
-      "--list",
-      Arg.Unit
-        (fun () ->
-           faction := (fun () -> List)),
-      " List accessible domains.";
-
-
-      "--check",
-      Arg.Unit
-        (fun () ->
-           faction := (fun () -> Check)),
-      " Check installation.";
-
-      "--init",
-      Arg.Unit
-        (fun () ->
-           faction := (fun () -> Init)),
-      " Initialize installation.";
     ]
+  in
+  let lst = ref [] in
+  let usage_msg =
+      Printf.sprintf "\
+sekred v%s
+
+Command:
+
+  sekred [options*] get domain
+  sekred [options*] delete domain
+  sekred [options*] set domain
+  sekred [options*] list
+  sekred [options*] init
+
+Options:\n" SekredConf.version
   in
   let () = 
     Arg.parse
       (Arg.align args)
-      (fun str -> failwith (Printf.sprintf "Don't know what to do with '%s'."  str))
-      (Printf.sprintf "sekred v%s\n\nOptions:\n" SekredConf.version)
+      (fun str -> lst := str :: !lst)
+      usage_msg
+  in
+  let () =
+    match List.rev !lst with
+      | ["get"; domain] ->
+          faction := (fun () -> Get domain)
+      | ["delete"; domain] ->
+          faction := (fun () -> Delete domain)
+      | ["set"; domain] ->
+          faction := (fun () -> Set (domain, !password ()))
+      | ["list"] ->
+          faction := (fun () -> List)
+      | ["check"] ->
+          faction := (fun () -> Check)
+      | ["init"] ->
+          faction := (fun () -> Init)
+      | _ ->
+          faction := (fun () -> Help)
   in
   let vardir = !vardir in
   let action = !faction () in
@@ -114,6 +101,9 @@ let () =
               end
       | Init ->
           Sekred.init ?vardir ()
+      | Help ->
+          Arg.usage (Arg.align args) usage_msg; 
+          exit 2
 
 
 
