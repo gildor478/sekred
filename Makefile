@@ -1,5 +1,5 @@
 
-default: build
+default: build testlive
 
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
@@ -54,9 +54,12 @@ deploy:
 		--forge_upload	--forge_group sekred --forge_user gildor-admin
 
 EXEC=_build/src/main.native
-testlive:
+testlive: build
 	sudo chgrp sekred $(EXEC)
 	sudo chmod g+s $(EXEC)
 	ls -alh $(EXEC)
+	sudo ls -alh /var/lib/sekred/domains/
 	$(EXEC) list
+	$(EXEC) get bar
+	$(EXEC) get foo || true
 

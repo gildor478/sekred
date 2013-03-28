@@ -25,9 +25,10 @@ let to_filename t domain =
 
 let has_access t domain =
   try
-    Unix.access (to_filename t domain) [Unix.R_OK];
-    true
-  with Unix.Unix_error _ ->
+    let chn = open_in (to_filename t domain) in
+      close_in chn;
+      true
+  with Sys_error _ ->
     false
 
 let exists t domain =
