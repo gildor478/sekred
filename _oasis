@@ -1,6 +1,6 @@
 OASISFormat: 0.3
 Name:        sekred
-Version:     0.1.2
+Version:     0.1.3
 Synopsis:    Password manager for automatic installation.
 Authors:     Sylvain Le Gall
 Copyrights:  (C) 2013 Sylvain Le Gall
@@ -30,4 +30,5 @@ Executable sekred
   BuildTools: ocamlbuild
   MainIs:     main.ml
   BuildDepends: sekred
+  CompiledObject: native
 

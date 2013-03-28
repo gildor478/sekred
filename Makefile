@@ -1,4 +1,6 @@
 
+default: build
+
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
 
@@ -43,10 +45,18 @@ OASIS2DEBIAN_ARGS="--distribution squeeze \
 		--group sekred,/var/lib/sekred \
 		--dh-dirs sekred,var/lib/sekred/domains \
 		--dpkg-statoverride /usr/bin/sekred,root,sekred,2755 \
-		--dpkg-statoverride /var/lib/sekred/domains,root,sekred,1730"
+		--dpkg-statoverride /var/lib/sekred/domains,root,sekred,1770"
 
 deploy:
 	admin-gallu-deploy --verbose \
 		--debian_pkg --debuild --debian_upload \
 		--oasis2debian_args '$(OASIS2DEBIAN_ARGS)' \
 		--forge_upload	--forge_group sekred --forge_user gildor-admin
+
+EXEC=_build/src/main.native
+testlive:
+	sudo chgrp sekred $(EXEC)
+	sudo chmod g+s $(EXEC)
+	ls -alh $(EXEC)
+	$(EXEC) list
+

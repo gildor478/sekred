@@ -193,9 +193,9 @@ let init ?(vardir=SekredConf.vardir) () =
   in
   let () =
     if not (Sys.file_exists domainsdir) then
-      Unix.mkdir domainsdir 0o1755;
+      Unix.mkdir domainsdir 0o755;
     (* Special mode, like crontabs directory. *)
-    Unix.chmod domainsdir 0o1730
+    Unix.chmod domainsdir 0o1770
   in
     ()
 
@@ -210,9 +210,9 @@ let check t =
         let lst = [] in
         let st = Unix.stat t.domainsdir in
         let lst =
-          if st.st_perm != 0o1730 then
+          if st.st_perm != 0o1770 then
             (spf "'%s' permission is %o but should be %o."
-               t.domainsdir st.st_perm 0o1730) :: lst
+               t.domainsdir st.st_perm 0o1770) :: lst
           else
             lst
         in
