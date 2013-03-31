@@ -18,6 +18,9 @@ let () =
   let vardir =
     ref None
   in
+  let uid = 
+    ref None
+  in
   let args = 
     [
       "--vardir",
@@ -40,6 +43,25 @@ let () =
              password := fun () -> str),
       "fn Read password from file.";
 
+      "--uid",
+      Arg.String
+        (fun id_str ->
+           let id =
+             try
+               int_of_string id_str
+             with Failure _ ->
+               begin
+                 try
+                   (Unix.getpwnam id_str).Unix.pw_uid
+                 with Not_found ->
+                   failwith
+                     (Printf.sprintf
+                        "Unable to find user '%s'."
+                        id_str)
+               end
+           in
+             uid := Some id),
+      "uid User id to create the password (N.B. only work as root)."
     ]
   in
   let lst = ref [] in
@@ -81,8 +103,9 @@ Options:\n" SekredConf.version
           faction := (fun () -> Help)
   in
   let vardir = !vardir in
+  let uid = !uid in
   let action = !faction () in
-  let t () = Sekred.create ?vardir () in (* TODO: uid *)
+  let t () = Sekred.create ?vardir ?uid () in
     match action with 
       | Get domain ->
           print_endline (Sekred.get (t ()) domain)
