@@ -40,7 +40,7 @@ setup.data:
 
 # OASIS_STOP
 
-OASIS2DEBIAN_ARGS="--distribution squeeze \
+OASIS2DEBIAN_ARGS="--distribution wheezy \
 		--executable-name sekred \
 		--group sekred,/var/lib/sekred \
 		--dh-dirs sekred,var/lib/sekred/domains \
