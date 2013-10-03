@@ -55,6 +55,8 @@ deploy:
 	admin-gallu-oasis-increment --use_vcs \
 		--setup_run --setup_args '-setup-update dynamic'
 
+.PHONY: deploy
+
 EXEC=_build/src/main.native
 testlive: build
 	sudo chgrp sekred $(EXEC)
