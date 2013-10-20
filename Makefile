@@ -1,5 +1,5 @@
 
-default: build testlive
+default: test
 
 # OASIS_START
 # DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
@@ -40,6 +40,9 @@ setup.data:
 
 # OASIS_STOP
 
+# Deploy target
+#  Deploy/release the software.
+
 OASIS2DEBIAN_ARGS="--distribution wheezy \
 		--executable-name sekred \
 		--group sekred,/var/lib/sekred \
@@ -56,14 +59,3 @@ deploy:
 		--setup_run --setup_args '-setup-update dynamic'
 
 .PHONY: deploy
-
-EXEC=_build/src/main.native
-testlive: build
-	sudo chgrp sekred $(EXEC)
-	sudo chmod g+s $(EXEC)
-	ls -alh $(EXEC)
-	sudo ls -alh /var/lib/sekred/domains/
-	$(EXEC) list
-	$(EXEC) get bar
-	$(EXEC) get foo || true
-

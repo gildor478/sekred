@@ -8,6 +8,7 @@ License:     LGPL-2.1 with OCaml linking exception
 Plugins:     DevFiles (0.3), META (0.3), StdFiles (0.3)
 Homepage:    http://sekred.forge.ocamlcore.org/
 FilesAB:     src/lib/SekredConf.ml.ab
+BuildTools:  ocamlbuild
 
 Description:
  This program helps to manage passwords set automatically and stored in a
@@ -21,14 +22,20 @@ Description:
 
 Library sekred
   Path:       src/lib
-  BuildTools: ocamlbuild
   Modules:    Sekred, SekredConf
   BuildDepends: unix
 
 Executable sekred
   Path:       src/bin
-  BuildTools: ocamlbuild
   MainIs:     sekred_main.ml
   BuildDepends: sekred
-  CompiledObject: native
 
+Executable test
+  Path: test
+  MainIs: test.ml
+  BuildDepends: oUnit (>= 2.0.0), sekred
+  Build$: flag(tests)
+
+Test main
+  Command: $test
+  TestTools: test

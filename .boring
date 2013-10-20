@@ -114,7 +114,7 @@
 
 ^build($|/)
 ^_build($|/)
-^src/SekredConf.ml$
+^src/lib/SekredConf.ml$
 ^dist($|/)
 ^setup.log$
 ^setup.data$
