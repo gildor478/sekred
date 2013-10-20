@@ -1,0 +1,3 @@
+2013-10-21  Sylvain Le Gall <sylvain AT le-gall.net>
+
+    * Version 0.1.6
