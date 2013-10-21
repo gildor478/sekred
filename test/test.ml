@@ -14,6 +14,7 @@ let test_simple =
 
      let string_list_printer = String.concat ", " in
 
+     let () = enable t in
 (* TODO: fake uid.
      let () =
        assert_equal
@@ -26,6 +27,7 @@ let test_simple =
 
      let password1 = get t "foo" in
      let password2 = get t "foo" in
+
        assert_equal
          ~msg:"Getting password twice."
          ~printer:(fun s -> s)
@@ -63,6 +65,9 @@ let test_simple =
          ~printer:(fun s -> s)
          "thisisasecret"
          (get t "bar"))
+
+
+(* TODO: check upgrade domains/ 0o1770 -> 0o755 *)
 
 let () =
   run_test_tt_main

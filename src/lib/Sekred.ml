@@ -22,7 +22,6 @@ let default_conf =
 type t =
     {
       conf: conf;
-      domainsdir: string;
       uid: int;
     }
 
@@ -41,8 +40,11 @@ let gid_of_group group =
 
 let domainsdir conf = Filename.concat conf.vardir "domains"
 
+let user_domainsdir t =
+  Filename.concat (domainsdir t.conf) (Printf.sprintf "%08d" t.uid)
+
 let to_filename t domain =
-  Filename.concat t.domainsdir domain
+  Filename.concat (user_domainsdir t) domain
 
 let has_access t domain =
   try
@@ -149,56 +151,58 @@ let pwgen () =
     done;
     password
 
-let get t domain =
-  if exists t domain then
-    begin
-      if has_access t domain then
-        begin
-          let chn = open_in (to_filename t domain) in
-          let final () = close_in chn in
-            try
-              let password = input_line chn in
-                final ();
-                password
-            with e ->
-              final ();
-              raise e
-        end
-      else
-        failwith
-          (Printf.sprintf
-             "No access to domain '%s'"
-             domain)
-    end
-  else
-    begin
-      let password = pwgen () in
-        set t domain password;
-        password
-    end
-
-let list t =
-  if not (Sys.file_exists t.domainsdir)
-    || not (Sys.is_directory t.domainsdir) then begin
+let check_user t =
+  let user_domainsdir = user_domainsdir t in
+  if not (Sys.file_exists user_domainsdir) then
     failwith
-      (Printf.sprintf
-         "Sekred domains dir '%s' doesn't exist"
-         t.domainsdir)
+      (Printf.sprintf "Sekred domain dir '%s' doesn't exist."
+         user_domainsdir);
+  if not (Sys.is_directory user_domainsdir) then
+    failwith
+      (Printf.sprintf "Sekred domains dir '%s' is not a directory."
+         user_domainsdir)
+
+let get t domain =
+  check_user t;
+  if exists t domain then begin
+    if has_access t domain then begin
+      let chn = open_in (to_filename t domain) in
+      let final () = close_in chn in
+        try
+          let password = input_line chn in
+            final ();
+            password
+        with e ->
+          final ();
+          raise e
+    end else begin
+      failwith
+        (Printf.sprintf
+           "No access to domain '%s'."
+           domain)
+    end
   end else begin
-    let lst =
-      Array.fold_left
-        (fun lst domain ->
-           if exists t domain && has_access t domain then
-             domain :: lst
-           else
-             lst)
-        []
-        (Sys.readdir t.domainsdir)
-    in
-      List.sort String.compare lst
+    let password = pwgen () in
+      set t domain password;
+      password
   end
 
+let list t =
+  let () = check_user t in
+  let lst =
+    Array.fold_left
+      (fun lst domain ->
+         if exists t domain && has_access t domain then
+           domain :: lst
+         else
+           lst)
+      []
+      (Sys.readdir (user_domainsdir t))
+  in
+    List.sort String.compare lst
+
 let delete t domain =
+  check_user t;
   if exists t domain && has_access t domain then
     Sys.remove (to_filename t domain)
   else
@@ -207,19 +211,18 @@ let delete t domain =
          "Unable to remove domain '%s'."
           domain)
 
-let create ?(conf=default_conf) ?(uid=Unix.getuid ()) () =
-  let domainsdir = Filename.concat conf.vardir "domains" in
-    if not (Sys.file_exists domainsdir)
-      || not (Sys.is_directory domainsdir) then
-      failwith
-        (Printf.sprintf
-           "Sekred domains dir '%s' doesn't exist."
-           domainsdir);
-    {
-      conf = conf;
-      domainsdir = domainsdir;
-      uid = uid;
-    }
+let enable t =
+  let user_domainsdir = user_domainsdir t in
+    if not (Sys.file_exists user_domainsdir) then begin
+      Unix.mkdir user_domainsdir 0o750
+    end
+
+let disable t =
+  (* TODO *)
+  failwith "Not implemented."
+
+let create ?(conf=default_conf) ?(uid=Unix.getuid ()) enable =
+  {conf = conf; uid = uid}
 
 let init ?(conf=default_conf) () =
   let domainsdir = domainsdir conf in
@@ -228,9 +231,7 @@ let init ?(conf=default_conf) () =
     Unix.mkdir conf.vardir 0o755;
   (* Create domainsdir, if needed. *)
   if not (Sys.file_exists domainsdir) then
-    Unix.mkdir domainsdir 0o755;
-  (* Special mode, like crontabs directory. *)
-  conf.chmod domainsdir 0o1770
+    Unix.mkdir domainsdir 0o751
 
 let check ?(conf=default_conf) () =
   let spf fmt = Printf.sprintf fmt in
@@ -242,9 +243,9 @@ let check ?(conf=default_conf) () =
       let lst = [] in
       let st = conf.stat domainsdir in
       let lst =
-        if st.st_perm != 0o1770 then
+        if st.st_perm != 0o751 then
           (spf "'%s' permission is %o but should be %o."
-             domainsdir st.st_perm 0o1770) :: lst
+             domainsdir st.st_perm 0o751) :: lst
         else
           lst
       in
