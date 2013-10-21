@@ -4,18 +4,18 @@ open Sekred
 
 let ignore_string : string -> unit = ignore
 
-let test_simple = 
+let test_simple =
   "simple" >::
   (fun test_ctxt ->
      let tmpdn = bracket_tmpdir test_ctxt in
      let conf = {default_conf with vardir = tmpdn} in
      let () = init ~conf () in
      let t = create ~conf () in
-    
+
      let string_list_printer = String.concat ", " in
 
 (* TODO: fake uid.
-     let () = 
+     let () =
        assert_equal
          ~msg:"No error in check."
          ~printer:string_list_printer
@@ -26,7 +26,7 @@ let test_simple =
 
      let password1 = get t "foo" in
      let password2 = get t "foo" in
-       assert_equal 
+       assert_equal
          ~msg:"Getting password twice."
          ~printer:(fun s -> s)
          password1 password2;
@@ -55,7 +55,7 @@ let test_simple =
          ~printer:string_list_printer
          ["foo"]
          (list t);
-  
+
        (* Set an entry. *)
        set t "bar" "thisisasecret";
        assert_equal
@@ -64,7 +64,7 @@ let test_simple =
          "thisisasecret"
          (get t "bar"))
 
-let () = 
+let () =
   run_test_tt_main
     ("Sekred" >:::
      [

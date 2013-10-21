@@ -1,23 +1,23 @@
 open Sekred
 
-type action_t = 
+type action_t =
   | Get of string
   | Delete of string
   | Set of string * string
-  | Check 
+  | Check
   | Init
-  | List 
+  | List
   | Help
 
-let () = 
+let () =
   let faction = ref (fun () -> List) in
-  let password = 
+  let password =
     ref (fun () ->
            failwith "You need to set --password=... for this action.")
   in
   let vardir = ref default_conf.vardir in
   let uid = ref None in
-  let args = 
+  let args =
     [
       "--vardir",
       Arg.String
@@ -75,7 +75,7 @@ Command:
 
 Options:\n" SekredConf.version
   in
-  let () = 
+  let () =
     Arg.parse
       (Arg.align args)
       (fun str -> lst := str :: !lst)
@@ -102,7 +102,7 @@ Options:\n" SekredConf.version
   let uid = !uid in
   let action = !faction () in
   let t () = Sekred.create ~conf ?uid () in
-    match action with 
+    match action with
       | Get domain ->
           print_endline (Sekred.get (t ()) domain)
       | Delete domain ->
@@ -121,7 +121,7 @@ Options:\n" SekredConf.version
       | Init ->
           Sekred.init ~conf ()
       | Help ->
-          Arg.usage (Arg.align args) usage_msg; 
+          Arg.usage (Arg.align args) usage_msg;
           exit 2
 
 
