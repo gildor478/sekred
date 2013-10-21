@@ -1,3 +1,5 @@
+open Sekred
+
 type action_t = 
   | Get of string
   | Delete of string
@@ -8,24 +10,18 @@ type action_t =
   | Help
 
 let () = 
-  let faction = 
-    ref (fun () -> List)
-  in
+  let faction = ref (fun () -> List) in
   let password = 
     ref (fun () ->
            failwith "You need to set --password=... for this action.")
   in
-  let vardir =
-    ref None
-  in
-  let uid = 
-    ref None
-  in
+  let vardir = ref default_conf.vardir in
+  let uid = ref None in
   let args = 
     [
       "--vardir",
       Arg.String
-        (fun fn -> vardir := Some fn),
+        (fun fn -> vardir := fn),
       "fn Set sekred vardir.";
 
       "--password",
@@ -102,10 +98,10 @@ Options:\n" SekredConf.version
       | _ ->
           faction := (fun () -> Help)
   in
-  let vardir = !vardir in
+  let conf = {default_conf with vardir = !vardir} in
   let uid = !uid in
   let action = !faction () in
-  let t () = Sekred.create ?vardir ?uid () in
+  let t () = Sekred.create ~conf ?uid () in
     match action with 
       | Get domain ->
           print_endline (Sekred.get (t ()) domain)
@@ -116,14 +112,14 @@ Options:\n" SekredConf.version
       | List ->
           List.iter print_endline (Sekred.list (t ()))
       | Check ->
-          let lst = Sekred.check (t ()) in
+          let lst = Sekred.check ~conf () in
             if lst <> [] then
               begin
                 List.iter prerr_endline lst;
                 exit 1
               end
       | Init ->
-          Sekred.init ?vardir ()
+          Sekred.init ~conf ()
       | Help ->
           Arg.usage (Arg.align args) usage_msg; 
           exit 2

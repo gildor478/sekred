@@ -2,12 +2,15 @@
 open OUnit2
 open Sekred
 
+let ignore_string : string -> unit = ignore
+
 let test_simple = 
   "simple" >::
   (fun test_ctxt ->
      let tmpdn = bracket_tmpdir test_ctxt in
-     let () = init ~vardir:tmpdn () in
-     let t = create ~vardir:tmpdn () in
+     let conf = {default_conf with vardir = tmpdn} in
+     let () = init ~conf () in
+     let t = create ~conf () in
     
      let string_list_printer = String.concat ", " in
 
@@ -38,7 +41,7 @@ let test_simple =
          (list t);
 
        (* Create a second entry. *)
-       get t "bar";
+       ignore_string (get t "bar");
        assert_equal
          ~msg:"Step2: two entries."
          ~printer:string_list_printer
@@ -53,13 +56,13 @@ let test_simple =
          ["foo"]
          (list t);
   
-      (* Set an entry. *)
-      set t "bar" "thisisasecret";
-      assert_equal
-        ~msg:"Set works."
-        ~printer:(fun s -> s)
-        "thisisasecret"
-        (get t "bar"))
+       (* Set an entry. *)
+       set t "bar" "thisisasecret";
+       assert_equal
+         ~msg:"Set works."
+         ~printer:(fun s -> s)
+         "thisisasecret"
+         (get t "bar"))
 
 let () = 
   run_test_tt_main
