@@ -60,13 +60,12 @@ let exists t domain =
 
 let set t domain password =
   let fix_right () =
-    if exists t domain then
-      begin
-        let fn = to_filename t domain in
-        let st = t.conf.stat fn in
-        t.conf.chown fn t.uid st.Unix.st_gid;
-        t.conf.chmod fn 0o600
-      end
+    if exists t domain then begin
+      let fn = to_filename t domain in
+      let st = t.conf.stat fn in
+      t.conf.chown fn t.uid st.Unix.st_gid;
+      t.conf.chmod fn 0o600
+    end
   in
   let () =
     if exists t domain && not (has_access t domain) then
@@ -214,7 +213,11 @@ let delete t domain =
 let enable t =
   let user_domainsdir = user_domainsdir t in
     if not (Sys.file_exists user_domainsdir) then begin
-      Unix.mkdir user_domainsdir 0o750
+      let st =
+        Unix.mkdir user_domainsdir 0o750;
+        t.conf.stat user_domainsdir
+      in
+        t.conf.chown user_domainsdir t.uid st.Unix.st_gid
     end
 
 let disable t =
@@ -235,6 +238,7 @@ let init ?(conf=default_conf) () =
 
 let check ?(conf=default_conf) () =
   let spf fmt = Printf.sprintf fmt in
+  let ls_full dn = Array.map (Filename.concat dn) (Sys.readdir dn) in
   let domainsdir = domainsdir conf in
     if not (Sys.file_exists domainsdir)
       || not (Sys.is_directory domainsdir) then begin
@@ -243,21 +247,21 @@ let check ?(conf=default_conf) () =
       let lst = [] in
       let st = conf.stat domainsdir in
       let lst =
-        if st.st_perm != 0o751 then
+        if st.st_perm <> 0o751 then
           (spf "'%s' permission is %o but should be %o."
              domainsdir st.st_perm 0o751) :: lst
         else
           lst
       in
       let lst =
-        if st.st_uid != 0 then
+        if st.st_uid <> 0 then
           (spf "'%s' owner is '%d' but should be 'root'."
              domainsdir st.st_uid) :: lst
         else
           lst
       in
       let lst =
-        if st.st_gid != 0 then
+        if st.st_gid <> 0 then
           (spf "'%s' group is '%d' but should be 'root'."
              domainsdir st.st_gid) :: lst
         else
@@ -266,14 +270,13 @@ let check ?(conf=default_conf) () =
       let rec check_files lst =
         function
           | fn :: tl ->
-              let full_fn = Filename.concat domainsdir fn in
-              let st = conf.stat full_fn in
+              let st = conf.stat fn in
               let lst =
-                if st.st_kind != Unix.S_REG then
-                  (spf "'%s' should be a file." full_fn) :: lst
-                else if st.st_perm != 0o0600 then
+                if st.st_kind <> Unix.S_REG then
+                  (spf "'%s' should be a file." fn) :: lst
+                else if st.st_perm <> 0o0600 then
                   (spf "'%s' file permission if %o but should be 0o0600."
-                     full_fn st.st_perm) :: lst
+                     fn st.st_perm) :: lst
                 else
                   lst
               in
@@ -281,5 +284,27 @@ let check ?(conf=default_conf) () =
           | [] ->
               lst
       in
-        check_files lst (Array.to_list (Sys.readdir domainsdir))
+        Array.fold_left
+          (fun lst dn ->
+             if Sys.is_directory dn then begin
+               let st = conf.stat dn in
+               let t' = {conf = conf; uid = st.Unix.st_uid} in
+               if user_domainsdir t' <> dn then begin
+                 (spf "'%s' user dir should be '%s'."
+                    dn (user_domainsdir t'))
+                 :: lst
+               end else begin
+                 let lst =
+                   if st.Unix.st_perm <> 0o750 then
+                     (spf "'%s' directory permision is %o but should be 0o750."
+                        dn st.Unix.st_perm) :: lst
+                   else
+                     lst
+                 in
+                  check_files lst (Array.to_list (ls_full dn))
+               end
+             end else begin
+               (spf "'%s' should be a directory." dn) :: lst
+             end)
+          lst (ls_full domainsdir)
     end
