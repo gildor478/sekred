@@ -63,7 +63,9 @@ let test_simple =
      let () = init ~conf () in
      let t = create ~conf () in
 
+       assert_bool "User not enabled." (not (is_enabled t));
        enable t;
+       assert_bool "User enabled." (is_enabled t);
        assert_check conf;
 
        assert_check conf;
@@ -97,8 +99,12 @@ let test_simple =
        assert_check conf;
        assert_equal_string
          ~msg:"Set works."
-         "thisisasecret" (get t "bar"))
+         "thisisasecret" (get t "bar");
 
+       assert_bool "User enabled." (is_enabled t);
+       disable t;
+       assert_bool "User disabled." (not (is_enabled t));
+       assert_check conf)
 
 (* TODO: check upgrade domains/ 0o1770 -> 0o755 *)
 

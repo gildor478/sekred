@@ -1,22 +1,13 @@
 open Sekred
 
-type action_t =
-  | Get of string
-  | Delete of string
-  | Set of string * string
-  | Check
-  | Init
-  | List
-  | Help
-
 let () =
-  let faction = ref (fun () -> List) in
   let password =
     ref (fun () ->
            failwith "You need to set --password=... for this action.")
   in
   let vardir = ref default_conf.vardir in
   let uid = ref None in
+  let auto_enable = ref false in
   let args =
     [
       "--vardir",
@@ -57,7 +48,11 @@ let () =
                end
            in
              uid := Some id),
-      "uid User id to create the password (N.B. only work as root)."
+      "uid User id to act on (may need to be root).";
+
+      "--auto_enable",
+      Arg.Set auto_enable,
+      " Enable the user automatically if needed."
     ]
   in
   let lst = ref [] in
@@ -71,6 +66,9 @@ Command:
   sekred [options*] delete domain
   sekred [options*] set domain
   sekred [options*] list
+  sekred [options*] enable
+  sekred [options*] disable
+  sekred [options*] is_enabled
   sekred [options*] init
 
 Options:\n" SekredConf.version
@@ -81,48 +79,37 @@ Options:\n" SekredConf.version
       (fun str -> lst := str :: !lst)
       usage_msg
   in
-  let () =
+
+  let conf = {default_conf with vardir = !vardir} in
+
+  let t need_enable =
+    let t = Sekred.create ~conf ?uid:!uid () in
+      if !auto_enable && need_enable then
+        enable t;
+      t
+  in
+
     match List.rev !lst with
       | ["get"; domain] ->
-          faction := (fun () -> Get domain)
+          print_endline (Sekred.get (t true) domain)
       | ["delete"; domain] ->
-          faction := (fun () -> Delete domain)
+          Sekred.delete (t false) domain
       | ["set"; domain] ->
-          faction := (fun () -> Set (domain, !password ()))
+          Sekred.set (t true) domain (!password ())
       | ["list"] ->
-          faction := (fun () -> List)
+          List.iter print_endline (Sekred.list (t false))
       | ["check"] ->
-          faction := (fun () -> Check)
-      | ["init"] ->
-          faction := (fun () -> Init)
-      | _ ->
-          faction := (fun () -> Help)
-  in
-  let conf = {default_conf with vardir = !vardir} in
-  let uid = !uid in
-  let action = !faction () in
-  let t () = Sekred.create ~conf ?uid () in
-    match action with
-      | Get domain ->
-          print_endline (Sekred.get (t ()) domain)
-      | Delete domain ->
-          Sekred.delete (t ()) domain
-      | Set (domain, password) ->
-          Sekred.set (t ()) domain password
-      | List ->
-          List.iter print_endline (Sekred.list (t ()))
-      | Check ->
           let lst = Sekred.check ~conf () in
-            if lst <> [] then
-              begin
-                List.iter prerr_endline lst;
-                exit 1
-              end
-      | Init ->
+          List.iter prerr_endline lst;
+          if lst <> [] then exit 1
+      | ["enable"] ->
+          enable (t false)
+      | ["disable"] ->
+          disable (t false)
+      | ["is_enabled"] ->
+          if is_enabled (t false) then exit 0 else exit 1
+      | ["init"] ->
           Sekred.init ~conf ()
-      | Help ->
+      | _ ->
           Arg.usage (Arg.align args) usage_msg;
           exit 2
-
-
-

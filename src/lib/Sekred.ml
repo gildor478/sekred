@@ -38,6 +38,14 @@ let gid_of_group group =
           (Printf.sprintf "Group %s doesn't exist."
           group)
 
+let name_of_uid uid =
+  try
+    (Unix.getpwuid uid).Unix.pw_name
+  with Not_found ->
+    string_of_int uid
+
+let ls_full dn = Array.map (Filename.concat dn) (Sys.readdir dn)
+
 let domainsdir conf = Filename.concat conf.vardir "domains"
 
 let user_domainsdir t =
@@ -159,7 +167,11 @@ let check_user t =
   if not (Sys.is_directory user_domainsdir) then
     failwith
       (Printf.sprintf "Sekred domains dir '%s' is not a directory."
-         user_domainsdir)
+         user_domainsdir);
+  if (t.conf.stat user_domainsdir).Unix.st_uid <> t.uid then
+    failwith
+      (Printf.sprintf "Sekred domains dir '%s' doesn't belong to user %s."
+         user_domainsdir (name_of_uid t.uid))
 
 let get t domain =
   check_user t;
@@ -221,8 +233,16 @@ let enable t =
     end
 
 let disable t =
-  (* TODO *)
-  failwith "Not implemented."
+  let user_domainsdir = user_domainsdir t in
+    Array.iter Sys.remove (ls_full user_domainsdir);
+    Unix.rmdir user_domainsdir
+
+let is_enabled t =
+  try
+    check_user t;
+    true
+  with Failure _ ->
+    false
 
 let create ?(conf=default_conf) ?(uid=Unix.getuid ()) enable =
   {conf = conf; uid = uid}
@@ -238,7 +258,6 @@ let init ?(conf=default_conf) () =
 
 let check ?(conf=default_conf) () =
   let spf fmt = Printf.sprintf fmt in
-  let ls_full dn = Array.map (Filename.concat dn) (Sys.readdir dn) in
   let domainsdir = domainsdir conf in
     if not (Sys.file_exists domainsdir)
       || not (Sys.is_directory domainsdir) then begin
