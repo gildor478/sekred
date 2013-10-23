@@ -1,3 +1,9 @@
-2013-10-21  Sylvain Le Gall <sylvain AT le-gall.net>
+2013-10-23  Sylvain Le Gall <sylvain AT le-gall.net>
 
-    * Version 0.1.6
+    * Version 0.2.0
+
+    * Drop the need of a sticky bit:
+      * domain are now stored in separate directory for each user
+      * before a user can use sekred, administrator must "enable" the user
+
+    * Implement a test suite, using OUnit v0.2.
