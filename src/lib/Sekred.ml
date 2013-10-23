@@ -247,6 +247,36 @@ let is_enabled t =
 let create ?(conf=default_conf) ?(uid=Unix.getuid ()) enable =
   {conf = conf; uid = uid}
 
+let upgrade_from_v0_1 conf =
+  (* Transfer v0.1 domain files to v0.2 *)
+  let upgrade_file fn =
+    let uid = (conf.stat fn).Unix.st_uid in
+    let domain = Filename.basename fn in
+    let passwd =
+      let chn_in = open_in fn in
+      let passwd = input_line chn_in in
+        close_in chn_in;
+        passwd
+    in
+    let t = create ~conf ~uid () in
+      enable t;
+      set t domain passwd;
+      Sys.remove fn
+  in
+
+  (* Fix domainsdir ACL. *)
+  let domainsdir = domainsdir conf in
+  let domains_stats = conf.stat domainsdir in
+    if domains_stats.Unix.st_perm <> 0o751 then
+      conf.chmod domainsdir 0o751;
+
+    (* Fix files. *)
+    Array.iter
+      (fun fn ->
+         if (conf.stat fn).Unix.st_kind = Unix.S_REG then
+           upgrade_file fn)
+      (ls_full domainsdir)
+
 let init ?(conf=default_conf) () =
   let domainsdir = domainsdir conf in
   (* Create vardir, if needed. *)
@@ -254,7 +284,8 @@ let init ?(conf=default_conf) () =
     Unix.mkdir conf.vardir 0o755;
   (* Create domainsdir, if needed. *)
   if not (Sys.file_exists domainsdir) then
-    Unix.mkdir domainsdir 0o751
+    Unix.mkdir domainsdir 0o751;
+  upgrade_from_v0_1 conf
 
 let check ?(conf=default_conf) () =
   let spf fmt = Printf.sprintf fmt in
