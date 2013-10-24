@@ -63,19 +63,22 @@ setup.data:
 # Deploy target
 #  Deploy/release the software.
 
-OASIS2DEBIAN_ARGS="--distribution wheezy \
+OASIS2DEBIAN_ARGS=--distribution wheezy \
 		--executable-name sekred \
 		--group sekred,/var/lib/sekred \
 		--dh-dirs sekred,var/lib/sekred/domains \
-		--dpkg-statoverride /usr/bin/sekred,root,sekred,2755 \
-		--dpkg-statoverride /var/lib/sekred/domains,root,sekred,1770"
+		--init-command "sekred init" \
+		--upgrade-command "sekred init"
+
+debtest:
+	oasis2debian init $(OASIS2DEBIAN_ARGS)
 
 deploy: headache
-	admin-gallu-deploy --verbose \
+	../admin-gallu/src/admin-gallu-deploy --verbose \
 		--debian_pkg --debuild --debian_upload \
 		--oasis2debian_args '$(OASIS2DEBIAN_ARGS)' \
-		--forge_upload	--forge_group sekred --forge_user gildor-admin
-	admin-gallu-oasis-increment --use_vcs \
+		--forge_upload	--forge_group sekred --forge_user gildor-admin --no_tag --ignore_changes --trace
+	#admin-gallu-oasis-increment --use_vcs \
 		--setup_run --setup_args '-setup-update dynamic'
 
 .PHONY: deploy
