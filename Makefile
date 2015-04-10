@@ -72,7 +72,7 @@ OASIS2DEBIAN_ARGS=--distribution wheezy \
 
 deploy: headache
 	../admin-gallu/src/admin-gallu-deploy --verbose \
-		--debian_pkg --debuild --debian_upload \
+		--debian_pkg --debuild --distdebuild --debian_upload \
 		--oasis2debian_args '$(OASIS2DEBIAN_ARGS)' \
 		--forge_upload	--forge_group sekred --forge_user gildor-admin
 	admin-gallu-oasis-increment --use_vcs \
@@ -92,7 +92,7 @@ PRECOMMIT_ARGS= \
 	    --exclude _tags
 
 precommit:
-	@if command -v OCamlPrecommit > /dev/null; then \
+	-@if command -v OCamlPrecommit > /dev/null; then \
 	  OCamlPrecommit $(PRECOMMIT_ARGS); \
 	else \
 	  echo "Skipping precommit checks.";\

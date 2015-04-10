@@ -86,6 +86,7 @@ Command:
   sekred [options*] get domain
   sekred [options*] delete domain
   sekred [options*] set domain
+  sekred [options*] exists domain
   sekred [options*] list
   sekred [options*] enable
   sekred [options*] disable
@@ -117,6 +118,9 @@ Options:\n" SekredConf.version
           Sekred.delete (t false) domain
       | ["set"; domain] ->
           Sekred.set (t true) domain (!password ())
+      | ["exists"; domain] ->
+          if not (List.mem domain (Sekred.list (t false))) then
+            exit 1
       | ["list"] ->
           List.iter print_endline (Sekred.list (t false))
       | ["check"] ->

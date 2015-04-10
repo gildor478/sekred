@@ -1,3 +1,9 @@
+2015-04-10  Sylvain Le Gall <sylvain AT le-gall.net>
+
+    * Version 0.2.1
+
+    * Add a subcommand "exists" to test existence of a domain.
+
 2013-10-23  Sylvain Le Gall <sylvain AT le-gall.net>
 
     * Version 0.2.0
