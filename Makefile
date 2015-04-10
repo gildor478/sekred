@@ -71,7 +71,7 @@ OASIS2DEBIAN_ARGS=--distribution wheezy \
 		--upgrade-command "sekred init"
 
 deploy: headache
-	../admin-gallu/src/admin-gallu-deploy --verbose \
+	admin-gallu-deploy --verbose --trace \
 		--debian_pkg --debuild --distdebuild --debian_upload \
 		--oasis2debian_args '$(OASIS2DEBIAN_ARGS)' \
 		--forge_upload	--forge_group sekred --forge_user gildor-admin
