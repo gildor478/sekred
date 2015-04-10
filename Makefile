@@ -67,13 +67,13 @@ OASIS2DEBIAN_ARGS=--distribution wheezy \
 		--executable-name sekred \
 		--group sekred,/var/lib/sekred \
 		--dh-dirs sekred,var/lib/sekred/domains \
-		--init-command "sekred init" \
-		--upgrade-command "sekred init"
+		--init-command 'sekred init' \
+		--upgrade-command 'sekred init'
 
 deploy: headache
-	admin-gallu-deploy --verbose --trace \
+	admin-gallu-deploy --ignore_changes \
 		--debian_pkg --debuild --distdebuild --debian_upload \
-		--oasis2debian_args '$(OASIS2DEBIAN_ARGS)' \
+		--oasis2debian_args "$(OASIS2DEBIAN_ARGS)" \
 		--forge_upload	--forge_group sekred --forge_user gildor-admin
 	admin-gallu-oasis-increment --use_vcs \
 		--setup_run --setup_args '-setup-update dynamic'
