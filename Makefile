@@ -111,13 +111,14 @@ fix-perms:
 #  Fix license header of file.
 
 headache:
-	find ./ \
-	  -name _darcs -prune -false \
-	  -name .git -prune -false \
-	  -name .svn -prune -false \
-	  -o -name _build -prune -false \
-	  -o -name dist -prune -false \
-	  -o -name '*[^~]' -type f \
-	  | xargs headache -h _header -c _headache.config
+	# TODO: use default headache and re-enable.
+	#find ./ \
+	#  -name _darcs -prune -false \
+	#  -name .git -prune -false \
+	#  -name .svn -prune -false \
+	#  -o -name _build -prune -false \
+	#  -o -name dist -prune -false \
+	#  -o -name '*[^~]' -type f \
+	#  | xargs /usr/bin/headache -h _header -c _headache.config
 
 .PHONY: headache
