@@ -26,9 +26,10 @@ Library sekred
   BuildDepends: unix, bytes
 
 Executable sekred
-  Path:       src/bin
-  MainIs:     sekred_main.ml
-  BuildDepends: sekred
+  Path:           src/bin
+  MainIs:         sekred_main.ml
+  CompiledObject: best
+  BuildDepends:   sekred
 
 Executable test
   Path: test
