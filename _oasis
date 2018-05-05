@@ -23,7 +23,7 @@ Description:
 Library sekred
   Path:       src/lib
   Modules:    Sekred, SekredConf
-  BuildDepends: unix
+  BuildDepends: unix, bytes
 
 Executable sekred
   Path:       src/bin

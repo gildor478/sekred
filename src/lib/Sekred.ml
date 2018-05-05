@@ -171,12 +171,12 @@ let pwgen () =
     |]
   in
   let password_length = 10 in
-  let password = String.create password_length in
-    for i = 0 to (String.length password) - 1 do
+  let password = Bytes.create password_length in
+    for i = 0 to (Bytes.length password) - 1 do
       let c = symbol.(Random.State.int (rng ()) (Array.length symbol)) in
-        String.set password i c
+        Bytes.set password i c
     done;
-    password
+    Bytes.to_string password
 
 let check_user t =
   let user_domainsdir = user_domainsdir t in
