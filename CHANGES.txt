@@ -1,3 +1,11 @@
+2018-05-05  Sylvain Le Gall <sylvain AT le-gall.net>
+
+    * Version 0.2.2
+
+    * Compile to native when possible.
+    * Fix problems with Bytes/String.
+    * Stop deploying Debian archive.
+
 2015-04-10  Sylvain Le Gall <sylvain AT le-gall.net>
 
     * Version 0.2.1
