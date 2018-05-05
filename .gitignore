@@ -3,4 +3,6 @@
 /setup.log
 /dist/
 /test.byte
+/sekred_main.byte
+/sekred_main.native
 /src/lib/SekredConf.ml
