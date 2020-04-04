@@ -1,0 +1,4 @@
+BinaryTarballs:
+  'sekred':
+    MakeTargets:
+    - install-bin

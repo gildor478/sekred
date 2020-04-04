@@ -66,14 +66,21 @@ configure:
 # Deploy target
 #  Deploy/release the software.
 
-deploy: headache
-	admin-gallu-deploy \
-		--forge_upload	--forge_group sekred --forge_user gildor-admin
-	deploy-using-oasis
-	admin-gallu-oasis-increment --use_vcs \
-		--setup_run --setup_args '-setup-update dynamic'
+deploy:
+	dispakan --verbose $(DEPLOY_FLAGS)
 
-.PHONY: deploy
+install-bin:
+	ocaml  setup.ml -configure \
+		--prefix / \
+		--sysconfdir /etc \
+		--destdir "$(DESTDIR)"
+	ocaml setup.ml -build
+	mkdir -p "$(DESTDIR)/lib/ocaml"
+	env OCAMLFIND_DESTDIR="$(DESTDIR)/lib/ocaml" \
+		ocaml setup.ml -install
+
+
+.PHONY: deploy install-bin
 
 # Precommit target
 #  Check style of code.
